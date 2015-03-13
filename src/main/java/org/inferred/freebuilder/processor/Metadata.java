@@ -21,8 +21,10 @@ import static com.google.common.collect.Iterables.addAll;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.lang.model.element.PackageElement;
@@ -38,6 +40,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Metadata about a &#64;{@link org.inferred.freebuilder.FreeBuilder FreeBuilder} type.
@@ -167,6 +170,7 @@ public class Metadata extends ValueType {
     private final String allCapsName;
     private final PropertyCodeGenerator codeGenerator;
     private final boolean fullyCheckedCast;
+    private final ImmutableSet<TypeElement> nullableAnnotations;
 
     private Property(Builder builder) {
       this.type = builder.type;
@@ -177,6 +181,7 @@ public class Metadata extends ValueType {
       this.getterName = builder.getterName;
       this.codeGenerator = builder.codeGenerator;
       this.fullyCheckedCast = builder.fullyCheckedCast;
+      this.nullableAnnotations = ImmutableSet.copyOf(builder.nullableAnnotations);
     }
 
     /** Returns the type of the property. */
@@ -226,6 +231,13 @@ public class Metadata extends ValueType {
       return fullyCheckedCast;
     }
 
+    /**
+     * Returns the {@code @Nullable} annotations that have been applied to this property.
+     */
+    public ImmutableSet<TypeElement> getNullableAnnotations() {
+      return nullableAnnotations;
+    }
+
     @Override
     protected void addFields(FieldReceiver fields) {
       fields.add("type", type.toString());
@@ -236,6 +248,7 @@ public class Metadata extends ValueType {
       fields.add("allCapsName", allCapsName);
       fields.add("codeGenerator", codeGenerator);
       fields.add("fullyCheckedCast", fullyCheckedCast);
+      fields.add("nullableAnnotations", nullableAnnotations);
     }
 
     /** Builder for {@link Property}. */
@@ -248,6 +261,8 @@ public class Metadata extends ValueType {
       private String allCapsName;
       private PropertyCodeGenerator codeGenerator;
       private Boolean fullyCheckedCast;
+      private final Set<TypeElement> nullableAnnotations =
+          new LinkedHashSet<TypeElement>();
 
       /** Sets the type of the property. */
       public Builder setType(TypeMirror type) {
@@ -298,6 +313,15 @@ public class Metadata extends ValueType {
       public Builder setFullyCheckedCast(Boolean fullyCheckedCast) {
         this.fullyCheckedCast = checkNotNull(fullyCheckedCast);
         return this;
+      }
+
+      /**
+       * Adds {@code @Nullable} annotations that have been applied to this property.
+       */
+      public Builder addAllNullableAnnotations(
+          Iterable<? extends TypeElement> nullableAnnotations) {
+          addAll(this.nullableAnnotations, nullableAnnotations);
+          return this;
       }
 
       /** Returns a newly-built {@link Property} based on the content of the {@code Builder}. */

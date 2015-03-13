@@ -23,11 +23,13 @@ import static org.inferred.freebuilder.processor.util.PrimitiveTypeImpl.INT;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 import org.inferred.freebuilder.processor.Metadata.Property;
 import org.inferred.freebuilder.processor.util.ImpliedClass;
 import org.inferred.freebuilder.processor.util.SourceStringBuilder;
 import org.inferred.freebuilder.processor.util.ClassTypeImpl;
+import org.inferred.freebuilder.processor.util.ClassTypeImpl.ClassElementImpl;
 import org.inferred.freebuilder.processor.util.NameImpl;
 import org.inferred.freebuilder.processor.util.NoTypes;
 import org.inferred.freebuilder.processor.util.PackageElementImpl;
@@ -967,6 +969,265 @@ public class CodeGeneratorTest {
   }
 
   @Test
+  public void testNullableProperties() {
+    ClassTypeImpl integer = newTopLevelClass("java.lang.Integer");
+    ClassTypeImpl string = newTopLevelClass("java.lang.String");
+    ClassElementImpl nullable = newTopLevelClass("javax.annotation.Nullable").asElement();
+    TypeElement person = newTopLevelClass("com.example.Person").asElement();
+    ImpliedClass generatedBuilder =
+        new ImpliedClass(PACKAGE, "Person_Builder", person, elements());
+    Property.Builder name = new Property.Builder()
+        .setAllCapsName("NAME")
+        .setBoxedType(string)
+        .setCapitalizedName("Name")
+        .setFullyCheckedCast(true)
+        .setGetterName("getName")
+        .setName("name")
+        .setType(string)
+        .addAllNullableAnnotations(ImmutableSet.of(nullable));
+    Property.Builder age = new Property.Builder()
+        .setAllCapsName("AGE")
+        .setBoxedType(integer)
+        .setCapitalizedName("Age")
+        .setFullyCheckedCast(true)
+        .setGetterName("getAge")
+        .setName("age")
+        .setType(integer)
+        .addAllNullableAnnotations(ImmutableSet.of(nullable));
+    Metadata metadata = new Metadata.Builder(elements())
+        .setBuilder(newNestedClass(person, "Builder").asElement())
+        .setBuilderFactory(BuilderFactory.NO_ARGS_CONSTRUCTOR)
+        .setBuilderSerializable(false)
+        .setGeneratedBuilder(generatedBuilder)
+        .setGwtCompatible(false)
+        .setGwtSerializable(false)
+        .setPartialType(generatedBuilder.createNestedClass("Partial"))
+        .addProperty(name
+            .setCodeGenerator(
+                new DefaultPropertyFactory.CodeGenerator(name.build(), "setName", true))
+            .build())
+        .addProperty(age
+            .setCodeGenerator(
+                new DefaultPropertyFactory.CodeGenerator(age.build(), "setAge", true))
+            .build())
+        .setPropertyEnum(generatedBuilder.createNestedClass("Property"))
+        .setType(person)
+        .setValueType(generatedBuilder.createNestedClass("Value"))
+        .build();
+
+    SourceStringBuilder sourceBuilder = SourceStringBuilder.simple();
+    new CodeGenerator().writeBuilderSource(sourceBuilder, metadata);
+
+    assertThat(sourceBuilder.toString()).isEqualTo(Joiner.on('\n').join(
+        "/**",
+        " * Auto-generated superclass of {@link Person.Builder},",
+        " * derived from the API of {@link Person}.",
+        " */",
+        "@Generated(\"org.inferred.freebuilder.processor.CodeGenerator\")",
+        "abstract class Person_Builder {",
+        "",
+        "  private static final Joiner COMMA_JOINER = Joiner.on(\", \").skipNulls();",
+        "",
+        "  @Nullable private String name = null;",
+        "  @Nullable private Integer age = null;",
+        "",
+        "  /**",
+        "   * Sets the value to be returned by {@link Person#getName()}.",
+        "   *",
+        "   * @return this {@code Builder} object",
+        "   */",
+        "  public Person.Builder setName(@Nullable String name) {",
+        "    this.name = name;",
+        "    return (Person.Builder) this;",
+        "  }",
+        "",
+        "  /**",
+        "   * Returns the value that will be returned by {@link Person#getName()}.",
+        "   */",
+        "  @Nullable",
+        "  public String getName() {",
+        "    return name;",
+        "  }",
+        "",
+        "  /**",
+        "   * Sets the value to be returned by {@link Person#getAge()}.",
+        "   *",
+        "   * @return this {@code Builder} object",
+        "   */",
+        "  public Person.Builder setAge(@Nullable Integer age) {",
+        "    this.age = age;",
+        "    return (Person.Builder) this;",
+        "  }",
+        "",
+        "  /**",
+        "   * Returns the value that will be returned by {@link Person#getAge()}.",
+        "   */",
+        "  @Nullable",
+        "  public Integer getAge() {",
+        "    return age;",
+        "  }",
+        "",
+        "  private static final class Value extends Person {",
+        "    @Nullable private final String name;",
+        "    @Nullable private final Integer age;",
+        "",
+        "    private Value(Person_Builder builder) {",
+        "      this.name = builder.name;",
+        "      this.age = builder.age;",
+        "    }",
+        "",
+        "    @Override",
+        "    @Nullable",
+        "    public String getName() {",
+        "      return name;",
+        "    }",
+        "",
+        "    @Override",
+        "    @Nullable",
+        "    public Integer getAge() {",
+        "      return age;",
+        "    }",
+        "",
+        "    @Override",
+        "    public boolean equals(Object obj) {",
+        "      if (!(obj instanceof Person_Builder.Value)) {",
+        "        return false;",
+        "      }",
+        "      Person_Builder.Value other = (Person_Builder.Value) obj;",
+        "      if (name != other.name",
+        "          && (name == null || !name.equals(other.name))) {",
+        "        return false;",
+        "      }",
+        "      if (age != other.age",
+        "          && (age == null || !age.equals(other.age))) {",
+        "        return false;",
+        "      }",
+        "      return true;",
+        "    }",
+        "",
+        "    @Override",
+        "    public int hashCode() {",
+        "      return Arrays.hashCode(new Object[] { name, age });",
+        "    }",
+        "",
+        "    @Override",
+        "    public String toString() {",
+        "      return \"Person{\"",
+        "          + COMMA_JOINER.join(",
+        "              (name != null ? \"name=\" + name : null),",
+        "              (age != null ? \"age=\" + age : null))",
+        "          + \"}\";",
+        "    }",
+        "  }",
+        "",
+        "  /**",
+        "   * Returns a newly-created {@link Person} based on the contents of the {@code Builder}.",
+        "   */",
+        "  public Person build() {",
+        "    return new Person_Builder.Value(this);",
+        "  }",
+        "",
+        "  /**",
+        "   * Sets all property values using the given {@code Person} as a template.",
+        "   */",
+        "  public Person.Builder mergeFrom(Person value) {",
+        "    setName(value.getName());",
+        "    setAge(value.getAge());",
+        "    return (Person.Builder) this;",
+        "  }",
+        "",
+        "  /**",
+        "   * Copies values from the given {@code Builder}.",
+        "   */",
+        "  public Person.Builder mergeFrom(Person.Builder template) {",
+        "    setName(template.getName());",
+        "    setAge(template.getAge());",
+        "    return (Person.Builder) this;",
+        "  }",
+        "",
+        "  /**",
+        "   * Resets the state of this builder.",
+        "   */",
+        "  public Person.Builder clear() {",
+        "    Person_Builder template = new Person.Builder();",
+        "    name = template.name;",
+        "    age = template.age;",
+        "    return (Person.Builder) this;",
+        "  }",
+        "",
+        "  private static final class Partial extends Person {",
+        "    @Nullable private final String name;",
+        "    @Nullable private final Integer age;",
+        "",
+        "    Partial(Person_Builder builder) {",
+        "      this.name = builder.name;",
+        "      this.age = builder.age;",
+        "    }",
+        "",
+        "    @Override",
+        "    @Nullable",
+        "    public String getName() {",
+        "      return name;",
+        "    }",
+        "",
+        "    @Override",
+        "    @Nullable",
+        "    public Integer getAge() {",
+        "      return age;",
+        "    }",
+        "",
+        "    @Override",
+        "    public boolean equals(Object obj) {",
+        "      if (!(obj instanceof Person_Builder.Partial)) {",
+        "        return false;",
+        "      }",
+        "      Person_Builder.Partial other = (Person_Builder.Partial) obj;",
+        "      if (name != other.name",
+        "          && (name == null || !name.equals(other.name))) {",
+        "        return false;",
+        "      }",
+        "      if (age != other.age",
+        "          && (age == null || !age.equals(other.age))) {",
+        "        return false;",
+        "      }",
+        "      return true;",
+        "    }",
+        "",
+        "    @Override",
+        "    public int hashCode() {",
+        "      int result = 1;",
+        "      result *= 31;",
+        "      result += ((name == null) ? 0 : name.hashCode());",
+        "      result *= 31;",
+        "      result += ((age == null) ? 0 : age.hashCode());",
+        "      return result;",
+        "    }",
+        "",
+        "    @Override",
+        "    public String toString() {",
+        "      return \"partial Person{\"",
+        "          + COMMA_JOINER.join(",
+        "              (name != null ? \"name=\" + name : null),",
+        "              (age != null ? \"age=\" + age : null))",
+        "          + \"}\";",
+        "    }",
+        "  }",
+        "",
+        "  /**",
+        "   * Returns a newly-created partial {@link Person}",
+        "   * based on the contents of the {@code Builder}.",
+        "   * State checking will not be performed.",
+        "   *",
+        "   * <p>Partials should only ever be used in tests.",
+        "   */",
+        "  @VisibleForTesting()",
+        "  public Person buildPartial() {",
+        "    return new Person_Builder.Partial(this);",
+        "  }",
+        "}\n"));
+  }
+
+  @Test
   public void testListProperties() {
     GenericTypeElementImpl list = newTopLevelGenericType("com.google.common.base.List");
     ClassTypeImpl integer = newTopLevelClass("java.lang.Integer");
@@ -1456,7 +1717,7 @@ public class CodeGeneratorTest {
 
       @Override
       protected void addFields(FieldReceiver fields) {
-        fields.add("GenericTypeElementImpl.this", GenericTypeElementImpl.this); 
+        fields.add("GenericTypeElementImpl.this", GenericTypeElementImpl.this);
         fields.add("typeArguments", typeArguments);
       }
 
