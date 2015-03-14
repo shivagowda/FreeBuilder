@@ -61,8 +61,15 @@ public abstract class PropertyCodeGenerator {
 
   protected final Property property;
 
+  /** The compiler's configured compliance level for source code. */
+  protected SourceLevel sourceLevel = SourceLevel.JAVA_6;
+
   public PropertyCodeGenerator(Property property) {
     this.property = property;
+  }
+
+  public void setSourceLevel(SourceLevel sourceLevel) {
+    this.sourceLevel = sourceLevel;
   }
 
   /** Property type. */

@@ -64,6 +64,9 @@ public class CodeGenerator {
 
   /** Write the source code for a generated builder. */
   void writeBuilderSource(SourceBuilder code, Metadata metadata, SourceLevel sourceLevel) {
+    for (Property property : metadata.getProperties()) {
+      property.getCodeGenerator().setSourceLevel(sourceLevel);
+    }
     if (metadata.getBuilder() == metadata.getGeneratedBuilder()) {
       writeStubSource(code, metadata);
       return;
