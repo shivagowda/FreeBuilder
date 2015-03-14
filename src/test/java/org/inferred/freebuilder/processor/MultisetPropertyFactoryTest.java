@@ -15,17 +15,13 @@
  */
 package org.inferred.freebuilder.processor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import java.util.Iterator;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultiset;
-import com.google.common.collect.Multiset;
-import com.google.common.testing.EqualsTester;
+import javax.tools.JavaFileObject;
 
 import org.inferred.freebuilder.FreeBuilder;
-import org.inferred.freebuilder.processor.Processor;
 import org.inferred.freebuilder.processor.util.testing.BehaviorTester;
+import org.inferred.freebuilder.processor.util.testing.CompilationException;
 import org.inferred.freebuilder.processor.util.testing.SourceBuilder;
 import org.inferred.freebuilder.processor.util.testing.TestBuilder;
 import org.junit.Rule;
@@ -34,9 +30,10 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.util.Iterator;
-
-import javax.tools.JavaFileObject;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultiset;
+import com.google.common.collect.Multiset;
+import com.google.common.testing.EqualsTester;
 
 @RunWith(JUnit4.class)
 public class MultisetPropertyFactoryTest {
@@ -420,20 +417,14 @@ public class MultisetPropertyFactoryTest {
 
   @Test
   public void testAddVarargs_null_primitive() {
-    boolean caughtException = false;
-    try {
-      behaviorTester
-          .with(new Processor())
-          .with(MULTISET_PRIMITIVES_TYPE)
-          .with(new TestBuilder()
-              .addLine("new com.example.DataType.Builder().addItems(1, null);")
-              .build())
-          .runTest();
-    } catch (AssertionError e) {
-      caughtException = true;
-      assertEquals("Compilation failed", e.getMessage());
-    }
-    assertTrue("Expected exception", caughtException);
+    behaviorTester
+        .with(new Processor())
+        .with(MULTISET_PRIMITIVES_TYPE)
+        .with(new TestBuilder()
+            .addLine("new com.example.DataType.Builder().addItems(1, null);")
+            .build());
+    thrown.expect(CompilationException.class);
+    behaviorTester.runTest();
   }
 
   @Test
