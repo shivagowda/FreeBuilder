@@ -23,4 +23,14 @@ public enum SourceLevel {
       return JAVA_7;
     }
   }
+
+  public Optional<TypeReference> javaUtilObjects() {
+    switch (this) {
+      case JAVA_6:
+        return Optional.absent();
+
+      default:
+        return Optional.of(TypeReference.to("java.util", "Objects"));
+    }
+  }
 }
