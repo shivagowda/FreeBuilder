@@ -19,11 +19,6 @@ import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.collect.Iterables.addAll;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Lists;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -41,6 +36,11 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleTypeVisitor6;
+
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Lists;
 
 /**
  * Manages the imports for a source file, and produces short type references by adding extra
@@ -72,6 +72,20 @@ class ImportManager extends SimpleTypeVisitor6<String, Void>
     public Builder addImplicitImport(TypeElement type) {
       Name simpleName = type.getSimpleName();
       boolean isTopLevel = type.getEnclosingElement().getKind().equals(ElementKind.PACKAGE);
+      if (isTopLevel && !implicitImports.containsKey(simpleName)) {
+        implicitImports.put(simpleName, type.getQualifiedName());
+      } else if (!type.getQualifiedName().equals(implicitImports.get(simpleName))) {
+        implicitImports.put(simpleName, null);
+      }
+      return this;
+    }
+
+    /**
+     * Adds a type which is implicitly imported into the current compilation unit.
+     */
+    public Builder addImplicitImport(AbstractImpliedClass type) {
+      Name simpleName = type.getSimpleName();
+      boolean isTopLevel = type.getNestedSuffix().isEmpty();
       if (isTopLevel && !implicitImports.containsKey(simpleName)) {
         implicitImports.put(simpleName, type.getQualifiedName());
       } else if (!type.getQualifiedName().equals(implicitImports.get(simpleName))) {
@@ -135,7 +149,8 @@ class ImportManager extends SimpleTypeVisitor6<String, Void>
 
   @Override
   public String shorten(TypeReference type) {
-    String prefix = getPrefixForTopLevelClass(type.getPackage(), type.getTopLevelTypeSimpleName());
+    String prefix = getPrefixForTopLevelClass(
+        type.getPackage().toString(), type.getTopLevelTypeSimpleName());
     return prefix + type.getTopLevelTypeSimpleName() + type.getNestedSuffix();
   }
 

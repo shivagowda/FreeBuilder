@@ -62,7 +62,7 @@ interface TypeShortener {
 
     @Override
     public String shorten(TypeReference type) {
-      return type.getQualifiedName();
+      return type.getQualifiedName().toString();
     }
 
     @Override
@@ -127,7 +127,7 @@ interface TypeShortener {
 
     @Override
     public String shorten(TypeReference type) {
-      return type.getQualifiedName().substring(type.getPackage().length() + 1);
+      return type.getQualifiedName().toString().substring(type.getPackage().length() + 1);
     }
 
     @Override

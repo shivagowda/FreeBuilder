@@ -40,11 +40,11 @@ public class TypeReference extends ValueType {
   }
 
   // Currently, only top-level types are implemented.
-  private final String packageName;
+  private final CharSequence packageName;
   private final String topLevelType;
   private final String nestedSuffix;
 
-  private TypeReference(String packageName, String topLevelType, String nestedSuffix) {
+  protected TypeReference(CharSequence packageName, String topLevelType, String nestedSuffix) {
     this.packageName = packageName;
     this.topLevelType = topLevelType;
     this.nestedSuffix = nestedSuffix;
@@ -57,7 +57,7 @@ public class TypeReference extends ValueType {
     fields.add("nestedSuffix", nestedSuffix);
   }
 
-  public String getPackage() {
+  public CharSequence getPackage() {
     return packageName;
   }
 
@@ -73,7 +73,7 @@ public class TypeReference extends ValueType {
     return nestedSuffix;
   }
 
-  public String getQualifiedName() {
+  public CharSequence getQualifiedName() {
     return packageName + "." + topLevelType + nestedSuffix;
   }
 }
